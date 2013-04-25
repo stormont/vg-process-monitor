@@ -8,37 +8,33 @@ Process Monitor is a lightweight process to manage other processes on the system
 Process Monitor
  | 
  - Job
- |  |
- |  - Worker strategy
- |  |  |
- |  |  - Cmd to execute
- |  |  - Arguments to pass
- |  |
- |  - Clean Stop strategy
- |  |  |
- |  |  - Cmd to execute
- |  |  - Arguments to pass
- |  |
- |  - Remote Log strategy
- |  |  |
- |  |  - Cmd to execute
- |  |  - Arguments to pass
- |  |  - Interval at which the Process Monitor will execute
- |  |
- |  - Remote Data strategy
- |  |  |
- |  |  - Cmd to execute
- |  |  - Arguments to pass
- |  |  - Interval at which the Process Monitor will execute
- |  |
- |  - Upgrade strategy
- |     |
- |     - Cmd to execute
- |     - Arguments to execute
- |
- - Job
- |
- ...
+    |
+    - Worker strategy
+    |  |
+    |  - Cmd to execute
+    |  - Arguments to pass
+    |
+    - Clean Stop strategy
+    |  |
+    |  - Cmd to execute
+    |  - Arguments to pass
+    |
+    - Remote Log strategy
+    |  |
+    |  - Cmd to execute
+    |  - Arguments to pass
+    |  - Interval at which the Process Monitor will execute
+    |
+    - Remote Data strategy
+    |  |
+    |  - Cmd to execute
+    |  - Arguments to pass
+    |  - Interval at which the Process Monitor will execute
+    |
+    - Upgrade strategy
+       |
+       - Cmd to execute
+       - Arguments to execute
 
 
 Each strategy is a separate process that must exist on the system, else it will be ignored.
