@@ -17,16 +17,10 @@ data Executable = Executable
    } deriving (Show,Read)
 
 
-data IntervalExecutable = IntervalExecutable
-   { executable :: Executable
-   , interval   :: Int
-   } deriving (Show,Read)
-
-
 data Job = Job
    { jobWorker    :: Executable
-   , jobLog       :: Maybe IntervalExecutable
-   , jobData      :: Maybe IntervalExecutable
+   , jobLog       :: Maybe Executable
+   , jobData      :: Maybe Executable
    , jobCleanStop :: Maybe Executable
    , jobUpgrade   :: Maybe Executable
    } deriving (Show,Read)
@@ -69,20 +63,8 @@ monitorWorker job workerHandle intervals = do
    exitCode <- getProcessExitCode workerHandle
    case exitCode of
       Nothing -> do
-         curTime <- getCurrentTime
-         let diffTime = diffUTCTime curTime (lastData intervals)
-         intervals' <- if diffTime > (dataInterval intervals)
-            then do
-               runDataWorker job
-               return $ intervals { lastData = curTime }
-            else return intervals
-         curTime' <- getCurrentTime
-         let diffTime' = diffUTCTime curTime' (lastLog intervals')
-         intervals'' <- if diffTime' > (logInterval intervals')
-            then do
-               runLogWorker job
-               return $ intervals' { lastLog = curTime' }
-            else return intervals'
+         intervals'  <- checkDataInterval job intervals
+         intervals'' <- checkLogInterval  job intervals'
          monitorWorker job workerHandle intervals''
       Just ExitSuccess     -> do
          runDataWorker job
@@ -94,14 +76,53 @@ monitorWorker job workerHandle intervals = do
          launchWorker job (intervals { lastLog = curTime, lastData = curTime })
 
 
-runDataWorker :: Job
-              -> IO ()
-runDataWorker job = putStrLn "Ran data worker"
+checkDataInterval :: Job
+                  -> Intervals
+                  -> IO (Intervals)
+checkDataInterval job intervals = do
+   curTime <- getCurrentTime
+   let diffTime = diffUTCTime curTime (lastData intervals)
+   intervals' <- if diffTime > (dataInterval intervals)
+      then do
+         runDataWorker job
+         return $ intervals { lastData = curTime }
+      else return intervals
+   return $ intervals'
 
 
-runLogWorker :: Job
-             -> IO ()
-runLogWorker job = putStrLn "Ran log worker"
+checkLogInterval :: Job
+                 -> Intervals
+                 -> IO (Intervals)
+checkLogInterval job intervals = do
+   curTime <- getCurrentTime
+   let diffTime = diffUTCTime curTime (lastLog intervals)
+   intervals' <- if diffTime > (logInterval intervals)
+      then do
+         runLogWorker job
+         return $ intervals { lastLog = curTime }
+      else return intervals
+   return $ intervals'
+
+
+-- Helper/shorthand functions for runWorker
+runDataWorker = runWorker jobData "Data worker fired"
+runLogWorker  = runWorker jobLog  "Log worker fired"
+
+
+runWorker :: (Job -> Maybe Executable)
+          -> String
+          -> Job
+          -> IO ()
+runWorker extractFunc desc job = do
+   case extractFunc job of
+      Nothing -> return ()
+      Just j  -> do
+         _ <- createProcess (proc (B.unpack $ execCmd j) (map (B.unpack) $ execArgs j))
+                            { std_out = Inherit
+                            , std_in  = Inherit
+                            , std_err = Inherit
+                            }
+         putStrLn desc
 
 
 performRecovery :: Job
