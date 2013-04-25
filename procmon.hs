@@ -12,7 +12,7 @@ main = do
    time <- getCurrentTime
    let worker = Executable (B.pack "temp.exe") []
        job = Job worker Nothing Nothing Nothing Nothing
-       intervals = Intervals time 0 0
+       intervals = Intervals time time 3 1
    putStrLn "Monitoring beginning..."
    launchWorker job intervals
    putStrLn "Monitoring complete"
