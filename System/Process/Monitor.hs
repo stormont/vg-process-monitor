@@ -6,7 +6,7 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar
 import Control.Monad.Trans (liftIO)
-import Data.Time.Clock
+import Data.Time
 import System.Exit
 import System.Process
 
@@ -154,3 +154,9 @@ performRecovery :: Job
 performRecovery job intervals = do
    putStrLn "Recovering data..."
    mapM_ (\x -> (intervalWorker x) job) intervals
+
+
+terminateWorker :: TVar Comm
+                -> IO ()
+terminateWorker comm = atomically $
+   modifyTVar comm (\x -> x { commTerminate = True })

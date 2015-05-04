@@ -6,7 +6,7 @@ import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar
 import Control.Monad.Trans (liftIO)
-import Data.Time.Clock
+import Data.Time
 import System.Environment (getArgs)
 
 import System.Process.Monitor
@@ -26,5 +26,4 @@ doWork args comm time = do
        job = mkJob worker
        intervals = [ (mkInterval time) { intervalMinTime = 3 }
                    , mkInterval time ]
-   _ <- forkIO $ launchWorker job comm intervals
-   return ()
+   launchWorker job comm intervals
