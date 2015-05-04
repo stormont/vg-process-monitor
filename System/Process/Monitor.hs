@@ -19,23 +19,28 @@ data Executable = Executable
    } deriving (Show,Read)
 
 
+mkExecutable :: Executable
+mkExecutable = Executable "" []
+
+
 data Job = Job
-   { jobWorker    :: Executable
-   , jobLog       :: Maybe Executable
-   , jobData      :: Maybe Executable
+   { jobWorker :: Executable
    } deriving (Show,Read)
 
 
-mkJob worker = Job worker Nothing Nothing
+mkJob :: Executable -> Job
+mkJob worker = Job worker
 
 
--- Intervals at which to run log/data backups, in seconds
-data Intervals = Intervals
-   { lastLog      :: UTCTime
-   , lastData     :: UTCTime
-   , logInterval  :: NominalDiffTime
-   , dataInterval :: NominalDiffTime
+data Interval = Interval
+   { intervalLastTime :: UTCTime
+   , intervalMinTime  :: NominalDiffTime
+   , intervalWorker   :: (Job -> IO ())
    }
+
+
+mkInterval :: UTCTime -> Interval
+mkInterval time = Interval time 1 (\_ -> return ())
 
 
 data Comm = Comm
@@ -51,7 +56,7 @@ mkComm time = Comm time 0 False
 
 launchWorker :: Job
              -> TVar Comm
-             -> Intervals
+             -> [Interval]
              -> IO ()
 launchWorker job comm intervals = do
    h <- startWorker $ jobWorker job
@@ -79,7 +84,7 @@ reportResults comm = do
 
 monitorWorker :: Job
               -> TVar Comm
-              -> Intervals
+              -> [Interval]
               -> ProcessHandle
               -> IO ()
 monitorWorker job comm intervals workerHandle = do
@@ -87,20 +92,18 @@ monitorWorker job comm intervals workerHandle = do
    exitCode <- getProcessExitCode workerHandle
    case exitCode of
       Nothing -> do
-         intervals'  <- checkDataInterval job intervals
-         intervals'' <- checkLogInterval  job intervals'
+         intervals'  <- mapM (checkInterval job) intervals
          comm' <- liftIO $ atomically $ readTVar comm
          if commTerminate comm'
             then do
                putStrLn "Terminating..."
                terminateProcess workerHandle
                reportResults comm
-            else monitorWorker job comm intervals'' workerHandle
+            else monitorWorker job comm intervals' workerHandle
       Just ExitSuccess     -> do
-         runDataWorker job
-         runLogWorker job
+         mapM_ (\x -> (intervalWorker x) job) intervals
       Just (ExitFailure c) -> do
-         performRecovery job
+         performRecovery job intervals
          comm' <- liftIO $ atomically $ readTVar comm
          if commTerminate comm'
             then do
@@ -112,40 +115,21 @@ monitorWorker job comm intervals workerHandle = do
                putStrLn $ "Time: " ++ show curTime
                putStrLn $ "NumFailures: " ++ show ((commNumFailures comm') + 1)
                liftIO $ atomically $ modifyTVar comm (\x -> x { commLastStart = curTime, commNumFailures = (commNumFailures x) + 1 })
-               launchWorker job comm (intervals { lastLog = curTime, lastData = curTime })
+               launchWorker job comm (map (\x -> x { intervalLastTime = curTime }) intervals)
 
 
-checkDataInterval :: Job
-                  -> Intervals
-                  -> IO (Intervals)
-checkDataInterval job intervals = do
+checkInterval :: Job
+              -> Interval
+              -> IO (Interval)
+checkInterval job interval = do
    curTime <- getCurrentTime
-   let diffTime = diffUTCTime curTime (lastData intervals)
-   intervals' <- if diffTime > (dataInterval intervals)
+   let diffTime = diffUTCTime curTime (intervalLastTime interval)
+   interval' <- if diffTime > (intervalMinTime interval)
       then do
-         runDataWorker job
-         return $ intervals { lastData = curTime }
-      else return intervals
-   return $ intervals'
-
-
-checkLogInterval :: Job
-                 -> Intervals
-                 -> IO (Intervals)
-checkLogInterval job intervals = do
-   curTime <- getCurrentTime
-   let diffTime = diffUTCTime curTime (lastLog intervals)
-   intervals' <- if diffTime > (logInterval intervals)
-      then do
-         runLogWorker job
-         return $ intervals { lastLog = curTime }
-      else return intervals
-   return $ intervals'
-
-
--- Helper/shorthand functions for runWorker
-runDataWorker = runWorker jobData "Data worker fired"
-runLogWorker  = runWorker jobLog  "Log worker fired"
+         (intervalWorker interval) job
+         return $ interval { intervalLastTime = curTime }
+      else return interval
+   return $ interval'
 
 
 runWorker :: (Job -> Maybe Executable)
@@ -165,8 +149,8 @@ runWorker extractFunc desc job = do
 
 
 performRecovery :: Job
+                -> [Interval]
                 -> IO ()
-performRecovery job = do
+performRecovery job intervals = do
    putStrLn "Recovering data..."
-   runDataWorker job
-   runLogWorker job
+   mapM_ (\x -> (intervalWorker x) job) intervals

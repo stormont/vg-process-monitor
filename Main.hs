@@ -24,6 +24,7 @@ main = do
 doWork args comm time = do
    let worker = Executable (head args) []
        job = mkJob worker
-       intervals = Intervals time time 3 1
+       intervals = [ (mkInterval time) { intervalMinTime = 3 }
+                   , mkInterval time ]
    _ <- forkIO $ launchWorker job comm intervals
    return ()
