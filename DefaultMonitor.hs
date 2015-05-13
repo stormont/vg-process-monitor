@@ -17,13 +17,11 @@ main = do
    putStrLn "Monitoring beginning..."
    time <- getCurrentTime
    comm <- liftIO $ atomically $ newTVar $ mkComm time
-   doWork args comm time
+   doWork args comm
    putStrLn "Monitoring complete"
 
 
-doWork args comm time = do
+doWork args comm = do
    let worker = Executable (head args) []
        job = mkJob worker
-       intervals = [ (mkInterval time) { intervalMinTime = 3 }
-                   , mkInterval time ]
-   launchWorker job comm intervals
+   launchWorker job comm []

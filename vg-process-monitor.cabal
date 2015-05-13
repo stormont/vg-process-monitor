@@ -31,14 +31,14 @@ library
     mtl >=2.1,
     process >=1.2,
     stm >=2.4,
-    time >=1.4 
+    time >=1.4
 
-executable vg-process-monitor
+executable default-process-monitor
   default-language:
     Haskell2010
   
   main-is:
-    Main.hs
+    DefaultMonitor.hs
   
   -- other-modules:
   -- other-extensions:
@@ -49,7 +49,29 @@ executable vg-process-monitor
     mtl >=2.1,
     process >=1.2,
     stm >=2.4,
-    time >=1.4 
+    time >=1.4
+
+executable warp-process-monitor
+  default-language:
+    Haskell2010
+  
+  main-is:
+    WarpMonitor.hs
+  
+  -- other-modules:
+  -- other-extensions:
+  -- hs-source-dirs:
+  
+  build-depends:
+    base >=4.7,
+    HTTP >=4000.2,
+    http-types >=0.8,
+    mtl >=2.1,
+    process >=1.2,
+    stm >=2.4,
+    time >=1.4,
+    wai >=3.0,
+    warp >=3.0
 
 executable worker-work-forever
   default-language:
