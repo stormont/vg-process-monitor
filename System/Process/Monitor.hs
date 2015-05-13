@@ -46,12 +46,13 @@ mkInterval time = Interval time 1 (\_ -> return ())
 data Comm = Comm
   { commLastStart :: UTCTime
   , commNumFailures :: Int
-  , commTerminate :: Bool
+  , commTerminateSignal :: Bool
+  , commTerminated :: Bool
   } deriving (Show,Read)
 
 
 mkComm :: UTCTime -> Comm
-mkComm time = Comm time 0 False
+mkComm time = Comm time 0 False False
 
 
 launchWorker :: Job
@@ -94,10 +95,11 @@ monitorWorker job comm intervals workerHandle = do
       Nothing -> do
          intervals'  <- mapM (checkInterval job) intervals
          comm' <- liftIO $ atomically $ readTVar comm
-         if commTerminate comm'
+         if commTerminateSignal comm'
             then do
                putStrLn "Terminating..."
                terminateProcess workerHandle
+               setTerminated comm
                reportResults comm
             else monitorWorker job comm intervals' workerHandle
       Just ExitSuccess     -> do
@@ -105,7 +107,7 @@ monitorWorker job comm intervals workerHandle = do
       Just (ExitFailure c) -> do
          performRecovery job intervals
          comm' <- liftIO $ atomically $ readTVar comm
-         if commTerminate comm'
+         if commTerminateSignal comm'
             then do
                putStrLn "Terminating..."
                reportResults comm
@@ -159,4 +161,10 @@ performRecovery job intervals = do
 terminateWorker :: TVar Comm
                 -> IO ()
 terminateWorker comm = atomically $
-   modifyTVar comm (\x -> x { commTerminate = True })
+   modifyTVar comm (\x -> x { commTerminateSignal = True })
+
+
+setTerminated :: TVar Comm
+              -> IO ()
+setTerminated comm = atomically $
+   modifyTVar comm (\x -> x { commTerminated = True })

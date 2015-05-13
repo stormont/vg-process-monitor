@@ -2,7 +2,7 @@
 module Main
    where
 
-import Control.Concurrent (forkIO)
+import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar
 import Control.Monad.Trans (liftIO)
@@ -35,6 +35,7 @@ app comm req resp = do
       ("stop":_) -> do
          liftIO $ terminateWorker comm
          liftIO $ putStrLn "Monitoring completed."
+         threadDelay 500000  -- 500ms delay
          resp stopR
       _ -> resp defaultR
 
