@@ -25,9 +25,16 @@ doWork args comm time = do
        intervalBin = head $ drop 1 args
        worker = Executable workerBin []
        job = mkJob worker
-       interval = Interval time 3 intervalJob
-   launchWorker job comm [interval]
+   launchWorker job
+                comm
+                [ Interval time 3 intervalJob1
+                , Interval time 5 intervalJob2
+                ]
 
 
-intervalJob _ =
-   putStrLn "Example interval"
+intervalJob1 _ =
+   putStrLn "Example interval 1"
+
+
+intervalJob2 _ =
+   putStrLn "Example interval 2"
