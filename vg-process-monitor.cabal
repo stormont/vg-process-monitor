@@ -96,7 +96,7 @@ executable example-worker-works-forever
     Haskell2010
   
   main-is:
-    System/Process/Monitor/Tests/WorkForeverWorker.hs
+    Examples/WorkForeverWorker.hs
   
   -- other-modules:
   -- other-extensions:
@@ -110,7 +110,7 @@ executable example-worker-exits-cleanly
     Haskell2010
   
   main-is:
-    System/Process/Monitor/Tests/ExitCleanlyWorker.hs
+    Examples/ExitCleanlyWorker.hs
   
   -- other-modules:
   -- other-extensions:
@@ -124,7 +124,7 @@ executable example-worker-exits-badly
     Haskell2010
   
   main-is:
-    System/Process/Monitor/Tests/ExitBadlyWorker.hs
+    Examples/ExitBadlyWorker.hs
   
   -- other-modules:
   -- other-extensions:
@@ -138,7 +138,7 @@ executable example-interval-worker
     Haskell2010
   
   main-is:
-    System/Process/Monitor/Tests/ExampleIntervalWorker.hs
+    Examples/ExampleIntervalWorker.hs
   
   -- other-modules:
   -- other-extensions:
