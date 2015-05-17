@@ -16,11 +16,18 @@ main = do
    putStrLn "Monitoring beginning..."
    time <- getCurrentTime
    comm <- liftIO $ atomically $ newTVar $ mkComm time
-   doWork args comm
+   doWork args comm time
    putStrLn "Monitoring complete"
 
 
-doWork args comm = do
-   let worker = Executable (head args) []
+doWork args comm time = do
+   let workerBin = head args
+       intervalBin = head $ drop 1 args
+       worker = Executable workerBin []
        job = mkJob worker
-   launchWorker job comm []
+       interval = Interval time 3 intervalJob
+   launchWorker job comm [interval]
+
+
+intervalJob _ =
+   putStrLn "Example interval"

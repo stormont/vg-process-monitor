@@ -11,8 +11,6 @@ import System.Exit
 import System.Process
 
 
--- TODO Settings for stdout/stdin/stderr?
-
 data Executable = Executable
    { execCmd  :: String
    , execArgs :: [String]
@@ -93,7 +91,7 @@ monitorWorker job comm intervals workerHandle = do
    exitCode <- getProcessExitCode workerHandle
    case exitCode of
       Nothing -> do
-         intervals'  <- mapM (checkInterval job) intervals
+         intervals' <- mapM (checkInterval job) intervals
          comm' <- liftIO $ atomically $ readTVar comm
          if commTerminateSignal comm'
             then do

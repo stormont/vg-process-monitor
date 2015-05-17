@@ -51,6 +51,24 @@ executable default-process-monitor
     stm >=2.4,
     time >=1.4
 
+executable default-interval-process-monitor
+  default-language:
+    Haskell2010
+  
+  main-is:
+    DefaultIntervalMonitor.hs
+  
+  -- other-modules:
+  -- other-extensions:
+  -- hs-source-dirs:
+  
+  build-depends:
+    base >=4.7,
+    mtl >=2.1,
+    process >=1.2,
+    stm >=2.4,
+    time >=1.4
+
 executable warp-process-monitor
   default-language:
     Haskell2010
@@ -73,17 +91,58 @@ executable warp-process-monitor
     wai >=3.0,
     warp >=3.0
 
-executable worker-work-forever
+executable example-worker-works-forever
   default-language:
     Haskell2010
   
   main-is:
-    System/Process/Monitor/Tests/worker-work-forever.hs
+    System/Process/Monitor/Tests/WorkForeverWorker.hs
   
   -- other-modules:
   -- other-extensions:
   -- hs-source-dirs:
   
   build-depends:
-    base >=4.7,
-    process >=1.2
+    base >=4.7
+
+executable example-worker-exits-cleanly
+  default-language:
+    Haskell2010
+  
+  main-is:
+    System/Process/Monitor/Tests/ExitCleanlyWorker.hs
+  
+  -- other-modules:
+  -- other-extensions:
+  -- hs-source-dirs:
+  
+  build-depends:
+    base >=4.7
+
+executable example-worker-exits-badly
+  default-language:
+    Haskell2010
+  
+  main-is:
+    System/Process/Monitor/Tests/ExitBadlyWorker.hs
+  
+  -- other-modules:
+  -- other-extensions:
+  -- hs-source-dirs:
+  
+  build-depends:
+    base >=4.7
+
+executable example-interval-worker
+  default-language:
+    Haskell2010
+  
+  main-is:
+    System/Process/Monitor/Tests/ExampleIntervalWorker.hs
+  
+  -- other-modules:
+  -- other-extensions:
+  -- hs-source-dirs:
+  
+  build-depends:
+    base >=4.7
